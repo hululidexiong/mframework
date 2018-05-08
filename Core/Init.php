@@ -43,4 +43,4 @@ define( 'ROOT_DIR' , dirname( CORE_DIR ));
 /*********************************************
  *
  */
-require_once CORE_DIR . DIRECTORY_SEPARATOR .'mMain.php';
+#require_once CORE_DIR . DIRECTORY_SEPARATOR .'Main.php';

@@ -68,7 +68,7 @@ class Framework{
 
         if($this->afterFunc ){
             foreach ( $this->afterFunc as $func){
-                $func();
+                $func( self::$_G );
             }
         }
 

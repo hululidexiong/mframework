@@ -48,4 +48,4 @@ test\.php
 test*
 uploadfile/
 vendor/
-*.html
+/*.html

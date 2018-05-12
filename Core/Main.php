@@ -12,11 +12,18 @@ class Framework{
 
 
     static $_instance;
+    static $outhtml;
 
-    protected $_G;
+    public static $_G;
+
     protected $_config;
+    protected $entry='Index';
+
+    private $style = 'default'; //模板风格
+
     protected $beforeFunc=[]; //初始化前执行 ， 没有 _G
-    protected $afterFunc=[]; //初始化后执行  有 _G
+    protected $afterFunc=[]; //初始化后执行  有 _G   第一个参数 &$_G
+
     protected $renderedFunc=[]; // 模板渲染后执行 有 $template
 
     public function beforePush( callback $callback ){
@@ -38,24 +45,55 @@ class Framework{
         return self::$_instance;
     }
 
+    public function start( $entry=null ){
+        $this->init( $entry );
+    }
+
+    protected function init( $entry = null){
+        if($entry){
+            $this->entry = $entry;
+        }
+        if($this->beforeFunc ){
+            foreach ( $this->beforeFunc as $func){
+                $func();
+            }
+        }
+
+        $this->loadConf();
+
+        //...
+
+        if($this->afterFunc ){
+            foreach ( $this->afterFunc as $func){
+                $func();
+            }
+        }
+
+        $this->run();
+
+    }
     /**
      * 框架运行方法， 路由加载控制器
      */
-    public static function run()
+    protected function run()
     {
         (isset($_GET['_c']) and trim($_GET['_c'])!='') or $_GET['_c']="index";
         (isset($_GET['_m']) and trim($_GET['_m'])!='') or $_GET['_m']="index";
         $_GET["_c"]=strtr($_GET['_c'],['\\'=>'','/'=>'']); // ,'.'=>''
         $_GET["_m"]=strtr($_GET['_m'],['\\'=>'','/'=>'']); // ,'.'=>''
-        $file_path= ROOT_DIR ."/App/Controller/".$_GET["_c"].".php";
+        //$file_path= ROOT_DIR ."/App/Controller/".$_GET["_c"].".php";
+        $class = $this->entry.'_'.$_GET["_c"];
+        $fileName = $class.".php";
+        $file_path= APP_DIR . DIRECTORY_SEPARATOR . $this->entry. "/".$fileName;
+        echo $file_path;
         if(!is_file($file_path) ) {
-          throw new MException($_GET['_c'] . ' controller');
+          throw new MException($_GET['_c'] . ' controller in Entry:' . $this->entry);
         };
         require($file_path);
-        $c="\\c\\".$_GET["_c"];
         $m=$_GET['_m'];
-        $o=new $c();
-        $o->$m();
+        $o=new $class( $this );
+        $r = $o->$m();
+        return $r;
     }
 
     /**
@@ -77,6 +115,64 @@ class Framework{
         $o->$m($argv);
 
     }
+
+
+    protected function loadConf(){
+        $conf_path = CONF_DIR . DIRECTORY_SEPARATOR .  ( DEBUG_MODE === 'online' ? 'Online' : 'Dev');
+        if(!is_dir( $conf_path )){
+            throw new MException( ' code:50001 conf dir is null! ' );
+        }
+        foreach (glob( $conf_path . DIRECTORY_SEPARATOR . "*.php") as $filename) {
+            $_conf=require($filename);
+            self::$_G['config'] = array_merge( (array)self::$_G['config'] , $_conf);
+        }
+    }
+
+    static public function post( $attribute = null , $force = false){
+        if( self::$_G || $force==true){
+            self::$_G[ 'REQUEST' ] = array_merge($_GET,$_POST);
+        }
+        return $attribute === null ? self::$_G[ 'REQUEST' ][$attribute] : self::$_G[ 'REQUEST' ];
+    }
+
+
+    /**
+     * 模板输出  (配合模板引擎)
+     * @param array $_vn
+     * @param array $_vd
+     * @param bool $r
+     * @return string
+     */
+    public function v($template , $_vn=[],$_vd=[],$r=false){
+        ob_start();
+        extract($_vd);
+//        self::setxsrf();
+//        $_xsrf=self::$_xsrf;//开启xsrf;
+//        $_xsrfh="<input type=\"hidden\" name=\"_xsrf\" value=\"".$_xsrf."\" />";
+//        foreach($_vn as $k=>$v){
+//            $file_path=D."/app/v/".$v.".php";
+//            if(!is_file($file_path))
+//            {
+//                continue;//如果不存在文件就跳过
+//            }
+//            require($file_path);
+//        }
+
+        $style = $this->style;
+        $path = TEMPLATE_DIR . DIRECTORY_SEPARATOR . $style . DIRECTORY_SEPARATOR .$template . '.html' ;
+
+        require( $path );
+        $ret=ob_get_clean();
+        self::$outhtml=$ret;
+        if($r)
+        {
+            return $ret;
+        }else{
+            echo $ret;
+        }
+    }
+
+//------------------------------------
 
     /**
      * 加载conf.php中的配置
@@ -109,7 +205,8 @@ class Framework{
     }
 
 
-//------------------------------------
+
+
 
     /**
      * 内部类自动调用 ， 优先识别别名
@@ -124,37 +221,6 @@ class Framework{
     }
 
 
-
-    /**
-     * 模板输出  (配合模板引擎)
-     * @param array $_vn
-     * @param array $_vd
-     * @param bool $r
-     * @return string
-     */
-    public static function v($_vn=[],$_vd=[],$r=false){
-        ob_start();
-        extract($_vd);
-        self::setxsrf();
-        $_xsrf=self::$_xsrf;//开启xsrf;
-        $_xsrfh="<input type=\"hidden\" name=\"_xsrf\" value=\"".$_xsrf."\" />";
-        foreach($_vn as $k=>$v){
-            $file_path=D."/app/v/".$v.".php";
-            if(!is_file($file_path))
-            {
-                continue;//如果不存在文件就跳过
-            }
-            require($file_path);
-        }
-        $ret=ob_get_clean();
-        self::$outhtml=$ret;
-        if($r)
-        {
-            return $ret;
-        }else{
-            echo $ret;
-        }
-    }
 
     /**
      * four zero four 报404错误。

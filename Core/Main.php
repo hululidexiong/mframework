@@ -88,7 +88,6 @@ class Framework{
         $class = $this->entry.'_'.$_GET["_c"];
         $fileName = $class.".php";
         $file_path= APP_DIR . DIRECTORY_SEPARATOR . $this->entry. "/".$fileName;
-        echo $file_path;
         if(!is_file($file_path) ) {
           throw new MException($_GET['_c'] . ' controller in Entry:' . $this->entry);
         };

@@ -1,17 +1,7 @@
 {
-	"name": "bbear/mvalidate",
-	"description": "mvalidate",
-	"type": "library",
-	"license": "BSD-3-Clause",
-	"authors": [
-		{"name": "BBear", "email": "hululidexiong@163.com"}
-	],
-	"require": {
-		"php": ">=7"
-	},
 	"autoload": {
 		"psr-4": {
-			"MValid\\": "src"
+			"m\\": "Core"
 		}
 	}
 }

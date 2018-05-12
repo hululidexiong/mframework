@@ -14,10 +14,13 @@ class Framework{
     static $_instance;
     static $outhtml;
 
+    protected static $_instance_module;
     public static $_G;
 
     protected $_config;
     protected $entry='Index';
+
+
 
     private $style = 'default'; //模板风格
 
@@ -169,8 +172,32 @@ class Framework{
             return $ret;
         }else{
             echo $ret;
+            exit;
         }
     }
+
+    /**
+     * 内部类自动调用 ， 优先识别别名
+     * @param $class_name
+     */
+    public static function L($class_name)
+    {
+        if($class_name{0} === '#'){
+            if( !self::$_instance_module[$class_name] ){
+                $actual_class = substr( $class_name , 1);
+                if( !class_exists( $actual_class ) ){
+                    $path =  MODULE_DIR . DIRECTORY_SEPARATOR . $actual_class . '.php';
+                    if(!is_file( $path )) throw new MException( $actual_class . ' module does not exist!');
+                    require $path;
+                }
+                self::$_instance_module[$class_name] = new $actual_class();
+            }
+            return self::$_instance_module[$class_name];
+        }
+        throw new MException( ' 待开发 !' );
+    }
+
+
 
 //------------------------------------
 
@@ -208,17 +235,7 @@ class Framework{
 
 
 
-    /**
-     * 内部类自动调用 ， 优先识别别名
-     * @param $class_name
-     */
-    public static function iloader($class_name)
-    {
-        $class_name=strtr($class_name,"\\","//");
-        $file_path=D."/app/".$class_name.'.php';
-        is_file($file_path) or self::nofile($class_name);
-        require($file_path);
-    }
+
 
 
 

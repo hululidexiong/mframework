@@ -29,15 +29,15 @@ class Framework{
 
     protected $renderedFunc=[]; // 模板渲染后执行 有 $template
 
-    public function beforePush( callback $callback ){
+    public function beforePush( \Closure $callback ){
         array_push( $this->beforeFunc , $callback);
     }
 
-    public function afterPush( callback $callback ){
+    public function afterPush( \Closure $callback ){
         array_push( $this->afterFunc , $callback);
     }
 
-    public function renderedPush( callback $callback ){
+    public function renderedPush( \Closure $callback ){
         array_push( $this->renderedFunc , $callback);
     }
 

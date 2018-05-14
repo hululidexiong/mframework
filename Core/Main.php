@@ -196,6 +196,15 @@ class Framework{
         throw new MException( ' 待开发 !' );
     }
 
+    public static function rJson( $var ){
+        echo $var ? json_encode( $var ) : json_encode([]);
+        exit;
+    }
+
+    public static function rJsonForObj( $var ){
+        echo $var ? json_encode( $var ) : json_encode( new \stdClass() );
+        exit;
+    }
 
 
 //------------------------------------

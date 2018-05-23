@@ -182,7 +182,7 @@ class Framework{
     public static function L($class_name)
     {
         if($class_name{0} === '#'){
-            if( !self::$_instance_module[$class_name] ){
+            if( !isset(self::$_instance_module[$class_name]) || !self::$_instance_module[$class_name] ){
                 $actual_class = substr( $class_name , 1);
                 if( !class_exists( $actual_class ) ){
                     $path =  MODULE_DIR . DIRECTORY_SEPARATOR . $actual_class . '.php';
